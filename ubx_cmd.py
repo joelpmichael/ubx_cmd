@@ -8,7 +8,7 @@ import string
 import sys
 import threading
 import time
-from enum import Enum, IntFlag, IntEnum, unique
+from enum import Enum, IntEnum, IntFlag, unique
 
 import serial
 
@@ -34,8 +34,8 @@ import serial
 # SAM-M8Q
 # MAX-7Q
 
-class UbxCmd:
 
+class UbxCmd:
     @unique
     class PORT(IntEnum):
         I2C = 0
@@ -47,11 +47,11 @@ class UbxCmd:
     @unique
     class INOUT_PROTOCOL(IntFlag):
         NONE = 0
-        UBX = 1<<0
-        NMEA = 1<<1
-        RTCM = 1<<2
-        RTCM3 = 1<<5
-        ALL = UBX|NMEA|RTCM|RTCM3
+        UBX = 1 << 0
+        NMEA = 1 << 1
+        RTCM = 1 << 2
+        RTCM3 = 1 << 5
+        ALL = UBX | NMEA | RTCM | RTCM3
 
     @unique
     class GNSS_ID_AUGMENT(IntEnum):
@@ -69,54 +69,90 @@ class UbxCmd:
     @unique
     class SBAS_PRN(IntFlag):
         NONE = 0
-        PRN120 = 1<<0
-        PRN121 = 1<<1
-        PRN122 = 1<<2
-        PRN123 = 1<<3
-        PRN124 = 1<<4
-        PRN125 = 1<<5
-        PRN126 = 1<<6
-        PRN127 = 1<<7
-        PRN128 = 1<<8
-        PRN129 = 1<<9
-        PRN130 = 1<<10
-        PRN131 = 1<<11
-        PRN132 = 1<<12
-        PRN133 = 1<<13
-        PRN134 = 1<<14
-        PRN135 = 1<<15
-        PRN136 = 1<<16
-        PRN137 = 1<<17
-        PRN138 = 1<<18
-        PRN139 = 1<<19
-        PRN140 = 1<<20
-        PRN141 = 1<<21
-        PRN142 = 1<<22
-        PRN143 = 1<<23
-        PRN144 = 1<<24
-        PRN145 = 1<<25
-        PRN146 = 1<<26
-        PRN147 = 1<<27
-        PRN148 = 1<<28
-        PRN149 = 1<<29
-        PRN150 = 1<<30
-        PRN151 = 1<<31
-        PRN152 = 1<<32
-        PRN153 = 1<<33
-        PRN154 = 1<<34
-        PRN155 = 1<<35
-        PRN156 = 1<<36
-        PRN157 = 1<<37
-        PRN158 = 1<<38
-        ALL = PRN120|PRN121|PRN122|PRN123|PRN124|PRN125|PRN126|PRN127|\
-              PRN128|PRN129|PRN130|PRN131|PRN132|PRN133|PRN134|PRN135|\
-              PRN136|PRN137|PRN138|PRN139|PRN140|PRN141|PRN142|PRN143|\
-              PRN144|PRN145|PRN146|PRN147|PRN148|PRN149|PRN150|PRN151|\
-              PRN152|PRN153|PRN154|PRN155|PRN156|PRN157|PRN158
+        PRN120 = 1 << 0
+        PRN121 = 1 << 1
+        PRN122 = 1 << 2
+        PRN123 = 1 << 3
+        PRN124 = 1 << 4
+        PRN125 = 1 << 5
+        PRN126 = 1 << 6
+        PRN127 = 1 << 7
+        PRN128 = 1 << 8
+        PRN129 = 1 << 9
+        PRN130 = 1 << 10
+        PRN131 = 1 << 11
+        PRN132 = 1 << 12
+        PRN133 = 1 << 13
+        PRN134 = 1 << 14
+        PRN135 = 1 << 15
+        PRN136 = 1 << 16
+        PRN137 = 1 << 17
+        PRN138 = 1 << 18
+        PRN139 = 1 << 19
+        PRN140 = 1 << 20
+        PRN141 = 1 << 21
+        PRN142 = 1 << 22
+        PRN143 = 1 << 23
+        PRN144 = 1 << 24
+        PRN145 = 1 << 25
+        PRN146 = 1 << 26
+        PRN147 = 1 << 27
+        PRN148 = 1 << 28
+        PRN149 = 1 << 29
+        PRN150 = 1 << 30
+        PRN151 = 1 << 31
+        PRN152 = 1 << 32
+        PRN153 = 1 << 33
+        PRN154 = 1 << 34
+        PRN155 = 1 << 35
+        PRN156 = 1 << 36
+        PRN157 = 1 << 37
+        PRN158 = 1 << 38
+        ALL = (
+            PRN120
+            | PRN121
+            | PRN122
+            | PRN123
+            | PRN124
+            | PRN125
+            | PRN126
+            | PRN127
+            | PRN128
+            | PRN129
+            | PRN130
+            | PRN131
+            | PRN132
+            | PRN133
+            | PRN134
+            | PRN135
+            | PRN136
+            | PRN137
+            | PRN138
+            | PRN139
+            | PRN140
+            | PRN141
+            | PRN142
+            | PRN143
+            | PRN144
+            | PRN145
+            | PRN146
+            | PRN147
+            | PRN148
+            | PRN149
+            | PRN150
+            | PRN151
+            | PRN152
+            | PRN153
+            | PRN154
+            | PRN155
+            | PRN156
+            | PRN157
+            | PRN158
+        )
 
     def thread_tx(self) -> None:
-    # thread that handles transmitting data frames to receiver (or file)
-        time.sleep(0.001) # yield to make sure all threads have started
+        # thread that handles transmitting data frames to receiver (or file)
+        time.sleep(0.001)  # yield to make sure all threads have started
 
         while True:
             while self.write == False or self.stream == None:
@@ -125,18 +161,18 @@ class UbxCmd:
             # wait forever for new data
             tx_item = self.tx_queue.get(block=True, timeout=None)
 
-            if tx_item == None: # canary value to break out of infinite loop
+            if tx_item == None:  # canary value to break out of infinite loop
                 self.tx_queue.task_done()
                 break
 
             self.stream.write(tx_item)
             self.tx_queue.task_done()
             if self.read == True:
-                time.sleep(0.001) # yield to read threads after TX completes
+                time.sleep(0.001)  # yield to read threads after TX completes
 
     def thread_rx(self) -> None:
-    # thread that handles receiving data frames from receiver (or file)
-        time.sleep(0.001) # yield to make sure all threads have started
+        # thread that handles receiving data frames from receiver (or file)
+        time.sleep(0.001)  # yield to make sure all threads have started
 
         # handles data input by stuffing into buffers, and doing minimal parsing to look for the end of the transmission before sending to queue to be fully parsed in another thread
         class rx_states(Enum):
@@ -150,15 +186,19 @@ class UbxCmd:
         rx_buff_pos = 0
         rx_state = rx_states.BEGIN
 
-        NMEA_BUFF_SIZE = 256 # usually NMEA sentences are max 82 chars, but ubx receivers can go longer if UBX-CFG-NMEA flags limit82 is unset (default)
+        NMEA_BUFF_SIZE = 256  # usually NMEA sentences are max 82 chars, but ubx receivers can go longer if UBX-CFG-NMEA flags limit82 is unset (default)
         nmea_buff = bytearray(NMEA_BUFF_SIZE)
         nmea_buff_pos = 0
 
-        UBX_BUFF_SIZE = 2 + 6 + 0xFFFF + 2 # max possible size for a UBX message µB + header + data + checksum
+        UBX_BUFF_SIZE = (
+            2 + 4 + 0xFFFF + 2
+        )  # max possible size for a UBX message µB + header + data + checksum
         ubx_buff = bytearray(UBX_BUFF_SIZE)
         ubx_buff_pos = 0
 
-        RTCM3_BUFF_SIZE = 3 + 1023 + 3 # max possible size for a RTCM3 message header + data + checksum
+        RTCM3_BUFF_SIZE = (
+            3 + 1023 + 3
+        )  # max possible size for a RTCM3 message header + data + checksum
         rtcm3_buff = bytearray(RTCM3_BUFF_SIZE)
         rtcm3_buff_pos = 0
 
@@ -166,19 +206,22 @@ class UbxCmd:
             while self.read == False or self.stream == None:
                 time.sleep(0.2)
 
-            try: rx_buff = self.stream.read(RX_BUFF_SIZE)
-            except BlockingIOError: rx_count = 0
-            else: rx_count = len(rx_buff)
+            try:
+                rx_buff = self.stream.read(RX_BUFF_SIZE)
+            except BlockingIOError:
+                rx_count = 0
+            else:
+                rx_count = len(rx_buff)
             if rx_count == 0:
                 continue
 
             rx_buff_pos = 0
             while rx_buff_pos < rx_count:
                 if rx_state == rx_states.BEGIN:
-                    if rx_buff[rx_buff_pos] == 0xB5: # ISO8859.1 for µ
+                    if rx_buff[rx_buff_pos] == 0xB5:  # ISO8859.1 for µ
                         rx_state = rx_states.RX_UBX
                         ubx_buff_pos = 0
-                    elif rx_buff[rx_buff_pos] == 0x24: # ASCII for $
+                    elif rx_buff[rx_buff_pos] == 0x24:  # ASCII for $
                         rx_state = rx_states.RX_NMEA
                         nmea_buff_pos = 0
                     # FIXME - add support for receiving RTCM3
@@ -193,8 +236,12 @@ class UbxCmd:
                     nmea_buff[nmea_buff_pos] = rx_buff[rx_buff_pos]
 
                     # NMEA sentences start with $ and end with CRLF
-                    if nmea_buff[nmea_buff_pos] == 0x0A and nmea_buff[nmea_buff_pos - 1] == 0x0D and nmea_buff[0] == 0x24:
-                        self.rx_queue.put_nowait(bytes(nmea_buff[:nmea_buff_pos+1]))
+                    if (
+                        nmea_buff[nmea_buff_pos] == 0x0A
+                        and nmea_buff[nmea_buff_pos - 1] == 0x0D
+                        and nmea_buff[0] == 0x24
+                    ):
+                        self.rx_queue.put_nowait(bytes(nmea_buff[: nmea_buff_pos + 1]))
                         nmea_buff_pos = 0
                         rx_state = rx_states.BEGIN
                     else:
@@ -208,11 +255,19 @@ class UbxCmd:
                     ubx_buff[ubx_buff_pos] = rx_buff[rx_buff_pos]
                     ubx_msg_len = 0xFFFF
                     if ubx_buff_pos >= 5:
-                        ubx_msg_len = int.from_bytes(ubx_buff[4:5], byteorder='little', signed=False)
+                        ubx_msg_len = int.from_bytes(
+                            ubx_buff[4:5], byteorder="little", signed=False
+                        )
 
                     # UBX messages start with µb, have a 6-byte header that contains the length, and a 2-byte checksum after length bytes
-                    if ubx_buff_pos >= (2 + 6 + ubx_msg_len + 2) and ubx_buff[0] == 0xB5 and ubx_buff[1] == 0x62:
-                        self.rx_queue.put_nowait(bytes(ubx_buff[:2 + 4 + ubx_msg_len + 2]))
+                    if (
+                        ubx_buff_pos >= (2 + 6 + ubx_msg_len + 2)
+                        and ubx_buff[0] == 0xB5
+                        and ubx_buff[1] == 0x62
+                    ):
+                        self.rx_queue.put_nowait(
+                            bytes(ubx_buff[: 2 + 4 + ubx_msg_len + 2])
+                        )
                         ubx_buff_pos = 0
                         rx_state = rx_states.BEGIN
                     else:
@@ -226,11 +281,22 @@ class UbxCmd:
                     rtcm3_buff[rtcm3_buff_pos] = rx_buff[rx_buff_pos]
                     rtcm3_msg_len = 1023
                     if rtcm3_buff_pos >= 3:
-                        rtcm3_msg_len = int.from_bytes(rtcm3_buff[2:3], byteorder='little', signed=False) & 0x03FF
+                        rtcm3_msg_len = (
+                            int.from_bytes(
+                                rtcm3_buff[2:3], byteorder="little", signed=False
+                            )
+                            & 0x03FF
+                        )
 
                     # RTCM3 messages start with 0xD3, 6 bits reserved (set to 0), 10 bits length, and 3 byte checksum (CRC24Q)
-                    if rtcm3_buff_pos >= (3 + rtcm3_msg_len + 3) and rtcm3_buff[0] == 0xD3 and (rtcm3_buff[1] & 0xFC) == 0:
-                        self.rx_queue.put_nowait(bytes(ubx_buff[:3 + rtcm3_msg_len + 3]))
+                    if (
+                        rtcm3_buff_pos >= (3 + rtcm3_msg_len + 3)
+                        and rtcm3_buff[0] == 0xD3
+                        and (rtcm3_buff[1] & 0xFC) == 0
+                    ):
+                        self.rx_queue.put_nowait(
+                            bytes(ubx_buff[: 3 + rtcm3_msg_len + 3])
+                        )
                         rtcm3_buff_pos = 0
                         rx_state = rx_states.BEGIN
                     else:
@@ -239,9 +305,9 @@ class UbxCmd:
                 rx_buff_pos += 1
 
     def thread_parse(self) -> None:
-    # thread that handles parsing of received data into NMEA, UBX or RTCM3 formats, verifying checksums, etc
+        # thread that handles parsing of received data into NMEA, UBX or RTCM3 formats, verifying checksums, etc
         while True:
-            time.sleep(0.001) # yield to read and application threads every cycle
+            time.sleep(0.001)  # yield to read and application threads every cycle
 
             rx_data = self.rx_queue.get(block=True, timeout=None)
 
@@ -252,7 +318,7 @@ class UbxCmd:
 
             rx_protocol = None
 
-            if rx_data[0] == 0x24: # ASCII for $
+            if rx_data[0] == 0x24:  # ASCII for $
                 rx_protocol = self.INOUT_PROTOCOL.NMEA
                 nmea_checksum = 0
                 checksum_pos = 0
@@ -260,7 +326,9 @@ class UbxCmd:
                 checksum_len = len(rx_data) - 6
                 rx_checksum = 0
                 # make sure 5th-last character is a * (checksum delimiter), and ends with \r\n
-                if rx_data[-5] == 0x2A and rx_data[-2] == 0x0D and rx_data[-1] == 0x0A: # ASCII for *, \r, \n
+                if (
+                    rx_data[-5] == 0x2A and rx_data[-2] == 0x0D and rx_data[-1] == 0x0A
+                ):  # ASCII for *, \r, \n
 
                     rx_checksum_str = str(rx_data[-4:-2], encoding="ascii").upper()
                     # check to make sure only hex digits in the checksum
@@ -283,17 +351,21 @@ class UbxCmd:
                     self.rx_queue.task_done()
                     continue
 
-            elif rx_data[0] == 0xB5 and rx_data[1] == 0x62: # ISO8859.1/ASCII for µb
+            elif rx_data[0] == 0xB5 and rx_data[1] == 0x62:  # ISO8859.1/ASCII for µb
                 rx_protocol = self.INOUT_PROTOCOL.UBX
                 ubx_ck_a = 0
                 ubx_ck_b = 0
                 checksum_pos = 0
                 checksum_start = 2
-                checksum_len = int.from_bytes(rx_data[4:5], byteorder='little', signed=False) + 4
+                checksum_len = (
+                    int.from_bytes(rx_data[4:5], byteorder="little", signed=False) + 4
+                )
 
                 # UBX checksum is fletcher of all data after (excluding) start sequence
                 while checksum_pos < checksum_len:
-                    ubx_ck_a = (ubx_ck_a + rx_data[checksum_start + checksum_pos]) & 0xFF # don't have to & 0xFF if we had uint8_t :-(
+                    ubx_ck_a = (
+                        ubx_ck_a + rx_data[checksum_start + checksum_pos]
+                    ) & 0xFF  # don't have to & 0xFF if we had uint8_t :-(
                     ubx_ck_b = (ubx_ck_b + ubx_ck_a) & 0xFF
                     checksum_pos += 1
 
@@ -307,20 +379,38 @@ class UbxCmd:
             # ref: https://portal.u-blox.com/s/question/0D52p00009IthhBCAR/ublox-rtcm-wrapper-specification
             elif rx_data[0] == 0xD3 and (rx_data[1] & 0xFC) == 0:
                 rx_protocol = self.INOUT_PROTOCOL.RTCM3
-                rtcm3_crc24q = 0 # CRC24Q seed = 0
+                rtcm3_crc24q = 0  # CRC24Q seed = 0
                 checksum_pos = 0
                 checksum_start = 0
-                checksum_len = len(rx_data) - 3 # entire frame is checksummed
+                checksum_len = len(rx_data) - 3  # entire frame is checksummed
 
                 # RTCM3 checksum is CRC24Q of entire frame
                 crc24q_table = [
-                    0x00000000,0x01864CFB,0x038AD50D,0x020C99F6,0x0793E6E1,0x0615AA1A,0x041933EC,0x059F7F17,
-                    0x0FA18139,0x0E27CDC2,0x0C2B5434,0x0DAD18CF,0x083267D8,0x09B42B23,0x0BB8B2D5,0x0A3EFE2E,
+                    0x00000000,
+                    0x01864CFB,
+                    0x038AD50D,
+                    0x020C99F6,
+                    0x0793E6E1,
+                    0x0615AA1A,
+                    0x041933EC,
+                    0x059F7F17,
+                    0x0FA18139,
+                    0x0E27CDC2,
+                    0x0C2B5434,
+                    0x0DAD18CF,
+                    0x083267D8,
+                    0x09B42B23,
+                    0x0BB8B2D5,
+                    0x0A3EFE2E,
                 ]
                 while checksum_pos < checksum_len:
                     rtcm3_crc24q ^= rx_data[checksum_pos + checksum_start] << 16
-                    rtcm3_crc24q = (rtcm3_crc24q << 4) ^ crc24q_table[(rtcm3_crc24q >> 20) & 0x0F]
-                    rtcm3_crc24q = (rtcm3_crc24q << 4) ^ crc24q_table[(rtcm3_crc24q >> 20) & 0x0F]
+                    rtcm3_crc24q = (rtcm3_crc24q << 4) ^ crc24q_table[
+                        (rtcm3_crc24q >> 20) & 0x0F
+                    ]
+                    rtcm3_crc24q = (rtcm3_crc24q << 4) ^ crc24q_table[
+                        (rtcm3_crc24q >> 20) & 0x0F
+                    ]
 
                 rtcm3_crc24q &= 0xFFFFFF
 
@@ -332,19 +422,27 @@ class UbxCmd:
             self.parse_dest_lock.acquire(blocking=True)
             for dest in self.parse_dest_threads.keys():
                 # check for protocol mask
-                if self.parse_dest_threads[dest]['protocols'] & rx_protocol == 0:
+                if self.parse_dest_threads[dest]["protocols"] & rx_protocol == 0:
                     continue
 
                 if rx_protocol == self.INOUT_PROTOCOL.NMEA:
                     # check for NMEA sentence filter mask
-                    if len(self.parse_dest_threads[dest]['nmea_filter']) > 0:
+                    if len(self.parse_dest_threads[dest]["nmea_filter"]) > 0:
                         filter_match = False
-                        for sentence,strmatch in self.parse_dest_threads[dest]['nmea_filter']:
+                        for sentence, strmatch in self.parse_dest_threads[dest][
+                            "nmea_filter"
+                        ]:
                             if sentence != None:
-                                if sentence.upper() != str(rx_data[3:5], encoding="ascii").upper():
+                                if (
+                                    sentence.upper()
+                                    != str(rx_data[3:5], encoding="ascii").upper()
+                                ):
                                     continue
                             if strmatch != None:
-                                if strmatch.upper() not in str(rx_data[6:-6], encoding="ascii").upper():
+                                if (
+                                    strmatch.upper()
+                                    not in str(rx_data[6:-6], encoding="ascii").upper()
+                                ):
                                     continue
                             filter_match = True
                             break
@@ -353,9 +451,11 @@ class UbxCmd:
 
                 elif rx_protocol == self.INOUT_PROTOCOL.UBX:
                     # check for UBX msgid/msgclass/offset/data filter mask
-                    if len(self.parse_dest_threads[dest]['ubx_filter']) > 0:
+                    if len(self.parse_dest_threads[dest]["ubx_filter"]) > 0:
                         filter_match = False
-                        for msgclass,msgid,offset,data in self.parse_dest_threads[dest]['ubx_filter']:
+                        for msgclass, msgid, offset, data in self.parse_dest_threads[
+                            dest
+                        ]["ubx_filter"]:
                             if msgclass != None:
                                 if msgclass != rx_data[2]:
                                     continue
@@ -384,24 +484,27 @@ class UbxCmd:
 
     def transmit(self, data: bytes) -> None:
         self.tx_queue.put(item=data, block=True, timeout=None)
-        time.sleep(0.001) # force yield out of this thread so tx/rx threads can run
+        time.sleep(0.001)  # force yield out of this thread so tx/rx threads can run
 
-    def receive_queue_start(self,
+    def receive_queue_start(
+        self,
         # empty filters = allow all
-        protocols:INOUT_PROTOCOL|None, # protocols to allow: UBX or NMEA
-        ubx_filters=[()], # list of UBX message class / message id / data offset / data value - matched equal, None = allow any
-        nmea_filters=[()], # list of NMEA sentence type / string match
-        rtcm3_filters=[()], # list of RTCM3 message type / string match
+        protocols: INOUT_PROTOCOL | None,  # protocols to allow: UBX or NMEA
+        ubx_filters=[
+            ()
+        ],  # list of UBX message class / message id / data offset / data value - matched equal, None = allow any
+        nmea_filters=[()],  # list of NMEA sentence type / string match
+        rtcm3_filters=[()],  # list of RTCM3 message type / string match
     ) -> queue.Queue:
 
-        q = queue.Queue(0) # unlimited queue length, so that thread_parse() won't block
+        q = queue.Queue(0)  # unlimited queue length, so that thread_parse() won't block
 
         self.parse_dest_lock.acquire(blocking=True)
         self.parse_dest_threads[q] = {}
 
         if protocols == None:
             protocols = self.INOUT_PROTOCOL.ALL
-        self.parse_dest_threads[q]['protocols'] = protocols
+        self.parse_dest_threads[q]["protocols"] = protocols
 
         # check UBX filter is valid
         for filter in ubx_filters:
@@ -410,7 +513,7 @@ class UbxCmd:
             if len(filter) != 4:
                 self.parse_dest_lock.release()
                 raise ValueError("Invalid UBX filter, must contain exactly 4 elements")
-        self.parse_dest_threads[q]['ubx_filter'] = ubx_filters
+        self.parse_dest_threads[q]["ubx_filter"] = ubx_filters
 
         # check NMEA filter is valid
         for filter in nmea_filters:
@@ -419,7 +522,7 @@ class UbxCmd:
             if len(filter) != 2:
                 self.parse_dest_lock.release()
                 raise ValueError("Invalid NMEA filter, must contain exactly 2 elements")
-        self.parse_dest_threads[q]['nmea_filter'] = nmea_filters
+        self.parse_dest_threads[q]["nmea_filter"] = nmea_filters
 
         self.parse_dest_lock.release()
         return q
@@ -438,46 +541,49 @@ class UbxCmd:
         new_msg = bytearray(length + 8)
 
         # 2-byte preamble - ss32.2
-        new_msg[0] = 0xB5 # ISO8859.1 for µ
-        new_msg[1] = 0x62 # ASCII for b
+        new_msg[0] = 0xB5  # ISO8859.1 for µ
+        new_msg[1] = 0x62  # ASCII for b
 
         # 1-byte class, 1-byte message ID - ss32.2
         new_msg[2] = msgclass & 0xFF
         new_msg[3] = msgid & 0xFF
 
         # 2-byte length, little-endian - ss32.2
-        new_msg[4:6] = length.to_bytes(length=2, byteorder='little')
+        new_msg[4:6] = length.to_bytes(length=2, byteorder="little")
 
         # payload - variable length (defined by length field)
         if length > 0:
-            new_msg[6:(length + 6)] = data
+            new_msg[6 : (length + 6)] = data
 
         # 2-byte checksum - ss32.4
         new_msg[length + 6] = 0
         new_msg[length + 7] = 0
 
         # checksum spans from the message class and ID to the end of the data
-        for byte in new_msg[2:(length + 6)]:
+        for byte in new_msg[2 : (length + 6)]:
             new_msg[length + 6] = (new_msg[length + 6] + byte) & 0xFF
             new_msg[length + 7] = (new_msg[length + 7] + new_msg[length + 6]) & 0xFF
 
         self.transmit(bytes(new_msg))
 
-    def ubx_msg_poll(self, msgclass: int, msgid: int, data=b'') -> bytes:
-        response_queue = self.receive_queue_start(self.INOUT_PROTOCOL.UBX, [(msgclass, msgid, None, None)])
+    def ubx_msg_poll(self, msgclass: int, msgid: int, data=b"") -> bytes:
+        response_queue = self.receive_queue_start(
+            self.INOUT_PROTOCOL.UBX, [(msgclass, msgid, None, None)]
+        )
         self.ubx_msg_send(msgclass, msgid, data)
-        response = b''
+        response = b""
 
         response_count = 0
         while response_count < 5:
-            response = b''
-            try: response = response_queue.get(block=True, timeout=self.write_timeout)
+            response = b""
+            try:
+                response = response_queue.get(block=True, timeout=self.write_timeout)
             except queue.Empty:
                 response_count += 1
                 continue
 
             if len(response) > 0:
-                if int.from_bytes(response[4:5], byteorder='little', signed=False) > 0:
+                if int.from_bytes(response[4:5], byteorder="little", signed=False) > 0:
                     response_queue.task_done()
                     break
 
@@ -487,18 +593,21 @@ class UbxCmd:
         self.receive_queue_stop(response_queue)
 
         if len(response) <= 8:
-            return b''
+            return b""
         else:
             return bytes(response[6:-2])
 
     def ubx_msg_acknak(self, msgclass: int, msgid: int, data: bytes) -> bool:
-        response_queue = self.receive_queue_start(self.INOUT_PROTOCOL.UBX, [(0x05, None, 0, msgclass), (0x05, None, 1, msgid)])
+        response_queue = self.receive_queue_start(
+            self.INOUT_PROTOCOL.UBX, [(0x05, None, 0, msgclass), (0x05, None, 1, msgid)]
+        )
         self.ubx_msg_send(msgclass, msgid, data)
-        response = b''
+        response = b""
         acknak_count = 0
         while acknak_count < 5:
-            response = b''
-            try: response = response_queue.get(block=True, timeout=self.write_timeout)
+            response = b""
+            try:
+                response = response_queue.get(block=True, timeout=self.write_timeout)
             except queue.Empty:
                 acknak_count += 1
                 continue
@@ -530,24 +639,35 @@ class UbxCmd:
 
     def ubx_mon_ver(self):
         extensions = []
-        sw_version = ''
-        hw_version = ''
-        rom_version = ''
+        sw_version = ""
+        hw_version = ""
+        rom_version = ""
 
         response = self.ubx_msg_poll(0x0A, 0x04)
-        response_pos = 0 # start of response data
+        response_pos = 0  # start of response data
         while response_pos < len(response):
             if response_pos == 0:
-                sw_version = str(response[6:35], encoding='iso-8859-1').split(sep='\0', maxsplit=1)[0]
+                sw_version = str(response[6:35], encoding="iso-8859-1").split(
+                    sep="\0", maxsplit=1
+                )[0]
                 response_pos += 30
             elif response_pos == 30:
-                hw_version = str(response[36:45], encoding='iso-8859-1').split(sep='\0', maxsplit=1)[0]
+                hw_version = str(response[36:45], encoding="iso-8859-1").split(
+                    sep="\0", maxsplit=1
+                )[0]
                 response_pos += 10
             elif response_pos == 40 and self.ubx_ver_allowed(10.00, 13.03):
-                rom_version = str(response[46:75], encoding='iso-8859-1').split(sep='\0', maxsplit=1)[0]
+                rom_version = str(response[46:75], encoding="iso-8859-1").split(
+                    sep="\0", maxsplit=1
+                )[0]
                 response_pos += 30
             else:
-                extensions.append(str(response[response_pos:response_pos+29], encoding='iso-8859-1').split(sep='\0', maxsplit=1)[0])
+                extensions.append(
+                    str(
+                        response[response_pos : response_pos + 29],
+                        encoding="iso-8859-1",
+                    ).split(sep="\0", maxsplit=1)[0]
+                )
                 response_pos += 30
 
         if self.ubx_ver_allowed(10.00, 13.03):
@@ -556,25 +676,29 @@ class UbxCmd:
             return (sw_version, hw_version, extensions)
 
     def ubx_find_proto_ver(self) -> None:
-        MAX_KNOWN_PROTO_VER=34.10
+        MAX_KNOWN_PROTO_VER = 34.10
 
         extensions = []
-        sw_version = ''
-        hw_version = ''
-        rom_version = ''
+        sw_version = ""
+        hw_version = ""
+        rom_version = ""
 
         if self.ubx_ver_allowed(10.00, 13.03):
             sw_version, hw_version, rom_version, extensions = self.ubx_mon_ver()
         elif self.ubx_ver_allowed(14.00, 34.10):
             sw_version, hw_version, extensions = self.ubx_mon_ver()
         for ext in extensions:
-            if ext[:7] == 'PROTVER':
+            if ext[:7] == "PROTVER":
                 # Protocol 17 and older (Gen5-7 and early Gen8) uses PROTVER VERSION
                 # Protocol 18 and newer (most Gen8 and Gen9-10) uses PROTVER=VERSION
                 # So just don't bother looking for the character between PROTVER and the version...
                 self.protocol_version = float(ext[8:])
                 if self.protocol_version > MAX_KNOWN_PROTO_VER:
-                    raise ValueError("Receiver protocol version {} is newer than known protocol version {}".format(self.protocol_version, MAX_KNOWN_PROTO_VER))
+                    raise ValueError(
+                        "Receiver protocol version {} is newer than known protocol version {}".format(
+                            self.protocol_version, MAX_KNOWN_PROTO_VER
+                        )
+                    )
                 return
 
         # didn't find protocol version in extensions, this is probably a very old receiver?
@@ -583,7 +707,7 @@ class UbxCmd:
     def set_logging(self, level) -> None:
         logger.setLevel(level)
 
-    def set_stream(self, stream:serial.Serial|io.BufferedIOBase) -> None:
+    def set_stream(self, stream: serial.Serial | io.BufferedIOBase) -> None:
         if self.stream != None:
             if stream != self.stream:
                 self.stream.close()
@@ -596,7 +720,7 @@ class UbxCmd:
             stream.bytesize = serial.EIGHTBITS
             stream.parity = serial.PARITY_NONE
             stream.stopbits = serial.STOPBITS_ONE
-            stream.timeout = 0.1 # 100 msec blocking timeout
+            stream.timeout = 0.1  # 100 msec blocking timeout
             stream.xonxoff = False
             stream.rtscts = False
             stream.dsrdtr = False
@@ -605,7 +729,9 @@ class UbxCmd:
         else:
             # set timeout for blocking io
             if self.read == True and self.write == True:
-                raise ValueError("Unable to both read and write on a file, use a serial.Serial object instead")
+                raise ValueError(
+                    "Unable to both read and write on a file, use a serial.Serial object instead"
+                )
 
         self.stream = stream
 
@@ -619,7 +745,9 @@ class UbxCmd:
 
         # force-set read OR write on files
         # only serial connections can be R/W
-        if isinstance(self.stream, io.RawIOBase) or isinstance(self.stream, io.BufferedIOBase):
+        if isinstance(self.stream, io.RawIOBase) or isinstance(
+            self.stream, io.BufferedIOBase
+        ):
             if self.stream.readable() and self.read == True:
                 self.write = False
             else:
@@ -630,14 +758,25 @@ class UbxCmd:
 
         # force-set read OR write on files
         # only serial connections can be R/W
-        if isinstance(self.stream, io.RawIOBase) or isinstance(self.stream, io.BufferedIOBase):
+        if isinstance(self.stream, io.RawIOBase) or isinstance(
+            self.stream, io.BufferedIOBase
+        ):
             if self.stream.writable() and self.write == True:
                 self.read = False
             else:
                 self.write = False
 
     # defaults suitable for MAX-M8Q, override to match your own receiver
-    def __init__(self, stream, serial_baud=9600, protocol_version=18.00, read=False, write=True, log_level=getattr(logging, 'INFO', None), write_timeout=1.0) -> None:
+    def __init__(
+        self,
+        stream,
+        serial_baud=9600,
+        protocol_version=18.00,
+        read=False,
+        write=True,
+        log_level=getattr(logging, "INFO", None),
+        write_timeout=1.0,
+    ) -> None:
         self.set_logging(log_level)
 
         # init variables
@@ -659,7 +798,9 @@ class UbxCmd:
                 break
             baud *= 2
         if baud_ok == False:
-            raise ValueError("Serial baud rate must be a doubling of 4800, up to 921600")
+            raise ValueError(
+                "Serial baud rate must be a doubling of 4800, up to 921600"
+            )
 
         self.serial_baud = serial_baud
 
@@ -680,7 +821,9 @@ class UbxCmd:
         self.tx_queue = queue.Queue(1024)
         self.tx_thread = threading.Thread(target=self.thread_tx, daemon=True)
         self.tx_thread.start()
-        self.rx_queue = queue.Queue(0) # unbounded size, as rx_thread needs to be as non-blocking as possible
+        self.rx_queue = queue.Queue(
+            0
+        )  # unbounded size, as rx_thread needs to be as non-blocking as possible
         self.rx_thread = threading.Thread(target=self.thread_rx, daemon=True)
         self.rx_thread.start()
         self.parse_thread = threading.Thread(target=self.thread_parse, daemon=True)
@@ -698,18 +841,31 @@ class UbxCmd:
         # officially this is deprecated in 9- and 10-series receivers,
         # but it still clears/saves/loads entire configurations if any bits are set
         if not self.ubx_ver_allowed(10.00, 34.10):
-            raise ValueError("ubx-cfg-cfg not supported in protocol version {}".format(self.protocol_version))
+            raise ValueError(
+                "ubx-cfg-cfg not supported in protocol version {}".format(
+                    self.protocol_version
+                )
+            )
 
         if len(data) < 12 or len(data) > 13:
             raise ValueError("Data length must be 12 or 13 bytes")
 
         # apply bitfield masks
         new_data = bytearray(len(data))
-        new_data[0:4] = (int.from_bytes(data[0:3], byteorder='little', signed=False) & 0b00000000000000000001111100011111).to_bytes(length=4, byteorder='little', signed=False)
-        new_data[4:8] = (int.from_bytes(data[4:7], byteorder='little', signed=False) & 0b00000000000000000001111100011111).to_bytes(length=4, byteorder='little', signed=False)
-        new_data[8:12] = (int.from_bytes(data[8:11], byteorder='little', signed=False) & 0b00000000000000000001111100011111).to_bytes(length=4, byteorder='little', signed=False)
+        new_data[0:4] = (
+            int.from_bytes(data[0:3], byteorder="little", signed=False)
+            & 0b00000000000000000001111100011111
+        ).to_bytes(length=4, byteorder="little", signed=False)
+        new_data[4:8] = (
+            int.from_bytes(data[4:7], byteorder="little", signed=False)
+            & 0b00000000000000000001111100011111
+        ).to_bytes(length=4, byteorder="little", signed=False)
+        new_data[8:12] = (
+            int.from_bytes(data[8:11], byteorder="little", signed=False)
+            & 0b00000000000000000001111100011111
+        ).to_bytes(length=4, byteorder="little", signed=False)
         if len(data) == 13:
-            new_data[12] = (data[12] & 0b00010111)
+            new_data[12] = data[12] & 0b00010111
 
         # if this is a cfg reset, then the receiver may not respond
         self.ubx_msg_send(msgclass=0x06, msgid=0x09, data=bytes(new_data))
@@ -718,11 +874,17 @@ class UbxCmd:
     def ubx_cfg_cfg_reset_all(self) -> None:
         data = bytearray(13)
         # clearMask
-        data[0:4]  = (0b00000000000000000001111100011111).to_bytes(length=4, byteorder='little', signed=False)
+        data[0:4] = (0b00000000000000000001111100011111).to_bytes(
+            length=4, byteorder="little", signed=False
+        )
         # saveMask
-        data[4:8]  = (0b00000000000000000000000000000000).to_bytes(length=4, byteorder='little', signed=False)
+        data[4:8] = (0b00000000000000000000000000000000).to_bytes(
+            length=4, byteorder="little", signed=False
+        )
         # loadMask
-        data[8:12] = (0b00000000000000000001111100011111).to_bytes(length=4, byteorder='little', signed=False)
+        data[8:12] = (0b00000000000000000001111100011111).to_bytes(
+            length=4, byteorder="little", signed=False
+        )
 
         # deviceMask
         data[12] = 0b00010111
@@ -732,20 +894,42 @@ class UbxCmd:
     def ubx_cfg_cfg_save_all(self) -> None:
         data = bytearray(13)
         # clearMask
-        data[0:4]  = (0b00000000000000000000000000000000).to_bytes(length=4, byteorder='little', signed=False)
+        data[0:4] = (0b00000000000000000000000000000000).to_bytes(
+            length=4, byteorder="little", signed=False
+        )
         # saveMask
-        data[4:8]  = (0b00000000000000000001111100011111).to_bytes(length=4, byteorder='little', signed=False)
+        data[4:8] = (0b00000000000000000001111100011111).to_bytes(
+            length=4, byteorder="little", signed=False
+        )
         # loadMask
-        data[8:12] = (0b00000000000000000000000000000000).to_bytes(length=4, byteorder='little', signed=False)
+        data[8:12] = (0b00000000000000000000000000000000).to_bytes(
+            length=4, byteorder="little", signed=False
+        )
 
         # deviceMask
         data[12] = 0b00010111
 
         self.ubx_cfg_cfg(bytes(data))
 
-    def ubx_cfg_prt(self, port: PORT, in_protocol: INOUT_PROTOCOL, out_protocol: INOUT_PROTOCOL, flags=b'\0\0', mode=b'\0\0\0\0', baud=0, txready_enable=False, txready_polarity_low=False, txready_pin=0, txready_threshold=0) -> None:
+    def ubx_cfg_prt(
+        self,
+        port: PORT,
+        in_protocol: INOUT_PROTOCOL,
+        out_protocol: INOUT_PROTOCOL,
+        flags=b"\0\0",
+        mode=b"\0\0\0\0",
+        baud=0,
+        txready_enable=False,
+        txready_polarity_low=False,
+        txready_pin=0,
+        txready_threshold=0,
+    ) -> None:
         if not self.ubx_ver_allowed(12.00, 23.01):
-            raise ValueError("ubx-cfg-prt not supported in protocol version {}".format(self.protocol_version))
+            raise ValueError(
+                "ubx-cfg-prt not supported in protocol version {}".format(
+                    self.protocol_version
+                )
+            )
 
         # in_protocol limitations:
         # 6-series - UBX|NMEA
@@ -756,19 +940,34 @@ class UbxCmd:
         if in_protocol != None:
             if self.ubx_ver_allowed(10.00, 13.03):
                 # 6-series and earlier
-                in_protocol = in_protocol & (self.INOUT_PROTOCOL.NMEA|self.INOUT_PROTOCOL.UBX)
+                in_protocol = in_protocol & (
+                    self.INOUT_PROTOCOL.NMEA | self.INOUT_PROTOCOL.UBX
+                )
 
             elif self.ubx_ver_allowed(14.00, 19.20):
                 # M6, 7-series, some 8-series
-                in_protocol = in_protocol & (self.INOUT_PROTOCOL.NMEA|self.INOUT_PROTOCOL.UBX|self.INOUT_PROTOCOL.RTCM)
+                in_protocol = in_protocol & (
+                    self.INOUT_PROTOCOL.NMEA
+                    | self.INOUT_PROTOCOL.UBX
+                    | self.INOUT_PROTOCOL.RTCM
+                )
 
             elif self.ubx_ver_allowed(20, 23.01):
                 # some 8-series
-                in_protocol = in_protocol & (self.INOUT_PROTOCOL.NMEA|self.INOUT_PROTOCOL.UBX|self.INOUT_PROTOCOL.RTCM|self.INOUT_PROTOCOL.RTCM3)
+                in_protocol = in_protocol & (
+                    self.INOUT_PROTOCOL.NMEA
+                    | self.INOUT_PROTOCOL.UBX
+                    | self.INOUT_PROTOCOL.RTCM
+                    | self.INOUT_PROTOCOL.RTCM3
+                )
 
             elif self.ubx_ver_allowed(32.01, 34.10):
                 # 9-series and later
-                in_protocol = in_protocol & (self.INOUT_PROTOCOL.NMEA|self.INOUT_PROTOCOL.UBX|self.INOUT_PROTOCOL.RTCM3)
+                in_protocol = in_protocol & (
+                    self.INOUT_PROTOCOL.NMEA
+                    | self.INOUT_PROTOCOL.UBX
+                    | self.INOUT_PROTOCOL.RTCM3
+                )
 
         # out_protocol limitations:
         # 6-series - UBX|NMEA
@@ -779,11 +978,17 @@ class UbxCmd:
         if out_protocol != None:
             if self.ubx_ver_allowed(10.00, 19.20):
                 # 7-series and earlier, some 8-series
-                out_protocol = out_protocol & (self.INOUT_PROTOCOL.NMEA|self.INOUT_PROTOCOL.UBX)
+                out_protocol = out_protocol & (
+                    self.INOUT_PROTOCOL.NMEA | self.INOUT_PROTOCOL.UBX
+                )
 
             elif self.ubx_ver_allowed(20.00, 34.10):
                 # some 8-series, 9-series and later
-                out_protocol = out_protocol & (self.INOUT_PROTOCOL.NMEA|self.INOUT_PROTOCOL.UBX|self.INOUT_PROTOCOL.RTCM3)
+                out_protocol = out_protocol & (
+                    self.INOUT_PROTOCOL.NMEA
+                    | self.INOUT_PROTOCOL.UBX
+                    | self.INOUT_PROTOCOL.RTCM3
+                )
 
         data = bytearray(20)
 
@@ -801,13 +1006,13 @@ class UbxCmd:
         if self.ubx_ver_allowed(13.01, 23.01):
             # bit 0 = enable
             if txready_enable == True:
-                tx_ready |= 1<<0
+                tx_ready |= 1 << 0
             else:
                 tx_ready &= 0xFFFE
 
             # bit 1 = polarity: 0==high-enable, 1==low-enable
             if txready_polarity_low == True:
-                tx_ready |= 1<<1
+                tx_ready |= 1 << 1
             else:
                 tx_ready &= 0xFFFD
 
@@ -817,19 +1022,19 @@ class UbxCmd:
             # bit 7:15 = 9 bits for txready threshold (units of 8 bytes)
             tx_ready |= (txready_threshold & 0x1FF) << 7
 
-        data[2:4] = tx_ready.to_bytes(length=2, byteorder='little', signed=False)
+        data[2:4] = tx_ready.to_bytes(length=2, byteorder="little", signed=False)
 
         # mode and flags are different across all ports, each port will generate its own bytes to fill
         # USB port mode and flags fields are reserved
         if port == self.PORT.USB:
-            mode = b'\0\0\0\0'
-            flags = b'\0\0'
+            mode = b"\0\0\0\0"
+            flags = b"\0\0"
 
         data[4:8] = mode
 
         # flags only supported in 7-series+ receivers (protocol 14.00+)
         if not self.ubx_ver_allowed(14.00, 23.01):
-            flags = b'\0\0'
+            flags = b"\0\0"
 
         data[16:18] = flags
 
@@ -838,15 +1043,19 @@ class UbxCmd:
             # other ports this field is reserved
             baud = 0
 
-        data[8:12] = baud.to_bytes(length=4, byteorder='little', signed=False)
+        data[8:12] = baud.to_bytes(length=4, byteorder="little", signed=False)
 
         # input protocol mask
-        data[12:14] = int(in_protocol).to_bytes(length=2, byteorder='little', signed=False)
+        data[12:14] = int(in_protocol).to_bytes(
+            length=2, byteorder="little", signed=False
+        )
 
         # output protocol mask
-        data[14:16] = int(out_protocol).to_bytes(length=2, byteorder='little', signed=False)
+        data[14:16] = int(out_protocol).to_bytes(
+            length=2, byteorder="little", signed=False
+        )
 
-        data[18:20] = b'\0\0'
+        data[18:20] = b"\0\0"
 
         # don't parse a response on uart 1, because serial settings may have changed
         if port == self.PORT.UART1 and isinstance(self.stream, serial.Serial):
@@ -854,9 +1063,21 @@ class UbxCmd:
             time.sleep(1)
         else:
             if self.ubx_msg_acknak(0x06, 0x00, data) == False:
-                raise ValueError("Error in ubx-cfg-prt with data:\n{}".format(data.hex()))
+                raise ValueError(
+                    "Error in ubx-cfg-prt with data:\n{}".format(data.hex())
+                )
 
-    def ubx_cfg_prt_uart(self, uart=PORT.UART1, in_protocol=INOUT_PROTOCOL.NMEA|INOUT_PROTOCOL.UBX, out_protocol=INOUT_PROTOCOL.NMEA|INOUT_PROTOCOL.UBX, baud=9600, data_bits=8, parity_odd=None, stopbits=1.0, extended_tx_timeout=False) -> None:
+    def ubx_cfg_prt_uart(
+        self,
+        uart=PORT.UART1,
+        in_protocol=INOUT_PROTOCOL.NMEA | INOUT_PROTOCOL.UBX,
+        out_protocol=INOUT_PROTOCOL.NMEA | INOUT_PROTOCOL.UBX,
+        baud=9600,
+        data_bits=8,
+        parity_odd=None,
+        stopbits=1.0,
+        extended_tx_timeout=False,
+    ) -> None:
         # !!! WARNING !!!
         # changes to the currently active port may result in the receiver being unable to communicate
 
@@ -867,8 +1088,11 @@ class UbxCmd:
             if uart not in [self.PORT.UART1, self.PORT.UART2]:
                 raise ValueError("UART must be PORT.UART1 or PORT.UART2 (default 1)")
         else:
-            raise ValueError("ubx_cfg_prt_uart not supported in protocol version {}".format(self.protocol_version))
-
+            raise ValueError(
+                "ubx_cfg_prt_uart not supported in protocol version {}".format(
+                    self.protocol_version
+                )
+            )
 
         # sanity-check for various firmware version limitations
         # baud rate limitations:
@@ -885,7 +1109,11 @@ class UbxCmd:
                 test_baud /= 2
                 if test_baud == 2400:
                     test_baud = 4800
-                logger.warning("Requested baud rate not a doubling of 4800, setting to {} from {}".format(test_baud, baud))
+                logger.warning(
+                    "Requested baud rate not a doubling of 4800, setting to {} from {}".format(
+                        test_baud, baud
+                    )
+                )
                 break
 
             test_baud *= 2
@@ -895,70 +1123,110 @@ class UbxCmd:
         if self.ubx_ver_allowed(10.00, 13.03):
             # 7-series and earlier
             if baud < 4800:
-                logger.warning("Requested baud rate of {} slower than low limit of 4800, setting to low limit".format(baud))
+                logger.warning(
+                    "Requested baud rate of {} slower than low limit of 4800, setting to low limit".format(
+                        baud
+                    )
+                )
                 baud = 4800
             elif baud > 115200:
-                logger.warning("Requested baud rate of {} faster than high limit of 115200, setting to high limit".format(baud))
+                logger.warning(
+                    "Requested baud rate of {} faster than high limit of 115200, setting to high limit".format(
+                        baud
+                    )
+                )
                 baud = 115200
 
         elif self.ubx_ver_allowed(15.00, 23.01):
             # 8-series
             if baud < 4800:
-                logger.warning("Requested baud rate of {} slower than low limit of 4800, setting to low limit".format(baud))
+                logger.warning(
+                    "Requested baud rate of {} slower than low limit of 4800, setting to low limit".format(
+                        baud
+                    )
+                )
                 baud = 4800
             elif baud > 460800:
-                logger.warning("Requested baud rate of {} faster than high limit of 460800, setting to high limit".format(baud))
+                logger.warning(
+                    "Requested baud rate of {} faster than high limit of 460800, setting to high limit".format(
+                        baud
+                    )
+                )
                 baud = 460800
 
         elif self.ubx_ver_allowed(32.01, 34.10):
             # 9-series and later
             if baud < 9600:
-                logger.warning("Requested baud rate of {} slower than low limit of 9600, setting to low limit".format(baud))
+                logger.warning(
+                    "Requested baud rate of {} slower than low limit of 9600, setting to low limit".format(
+                        baud
+                    )
+                )
                 baud = 9600
             elif baud > 921600:
-                logger.warning("Requested baud rate of {} faster than high limit of 921600, setting to high limit".format(baud))
+                logger.warning(
+                    "Requested baud rate of {} faster than high limit of 921600, setting to high limit".format(
+                        baud
+                    )
+                )
                 baud = 921600
 
         if self.ubx_ver_allowed(10.00, 23.01):
             # 8-series and older use UBX-CFG-PRT to configure the port
-            data = bytearray(self.ubx_msg_poll(0x06, 0x00, data=int(uart).to_bytes(length=1, byteorder='little', signed=False)))
+            data = bytearray(
+                self.ubx_msg_poll(
+                    0x06,
+                    0x00,
+                    data=int(uart).to_bytes(length=1, byteorder="little", signed=False),
+                )
+            )
 
-            mode_bitfield = int.from_bytes(data[4:7], byteorder='little', signed=False)
-            mode_bitfield &= 0x00003ED0 # bitfield reserved bits mask
+            mode_bitfield = int.from_bytes(data[4:7], byteorder="little", signed=False)
+            mode_bitfield &= 0x00003ED0  # bitfield reserved bits mask
             if self.ubx_ver_allowed(10.00, 14.00):
-                mode_bitfield |= 1<<4 # reserved1 = default 1 for compatibility with A4 (for 7-series and earlier)
-            mode_bitfield &= 0xFFFFFF3F # clear data bits setting
-            mode_bitfield |= 1<<7 # 7-bit or 8-bit
+                mode_bitfield |= (
+                    1 << 4
+                )  # reserved1 = default 1 for compatibility with A4 (for 7-series and earlier)
+            mode_bitfield &= 0xFFFFFF3F  # clear data bits setting
+            mode_bitfield |= 1 << 7  # 7-bit or 8-bit
             if data_bits == 8:
-                mode_bitfield |= 1<<6 # 8-bit
-            mode_bitfield &= 0xFFFFF1FF # clear parity bits setting
+                mode_bitfield |= 1 << 6  # 8-bit
+            mode_bitfield &= 0xFFFFF1FF  # clear parity bits setting
             if parity_odd == None:
-                mode_bitfield |= 1<<11
+                mode_bitfield |= 1 << 11
             elif parity_odd == True:
-                mode_bitfield |= 1<<9
+                mode_bitfield |= 1 << 9
             # else mode_bitfield set to 0, which is already done
-            mode_bitfield &= 0xFFFFCFFF # clear stop bits setting
+            mode_bitfield &= 0xFFFFCFFF  # clear stop bits setting
             if stopbits == 1.5:
-                mode_bitfield |= 1<<12
+                mode_bitfield |= 1 << 12
             elif stopbits == 2:
-                mode_bitfield |= 1<<13
+                mode_bitfield |= 1 << 13
             # else stopbits == 1, which is set to 00
             # stopbits == 0.5 is supported in the receiver (bits set 11) but not supported in serial.Serial
 
             if self.ubx_ver_allowed(14.00, 23.01):
-                flags_bitfield = int.from_bytes(data[16:17], byteorder='little', signed=False)
-                flags_bitfield &= 0x0002 # reserved bits mask
-                flags_bitfield &= 0xFFFD # clear extended TX timeout bit
+                flags_bitfield = int.from_bytes(
+                    data[16:17], byteorder="little", signed=False
+                )
+                flags_bitfield &= 0x0002  # reserved bits mask
+                flags_bitfield &= 0xFFFD  # clear extended TX timeout bit
                 if extended_tx_timeout == True:
-                    flags_bitfield |= 1<<1
+                    flags_bitfield |= 1 << 1
 
             else:
                 flags_bitfield = 0
 
-            self.ubx_cfg_prt(port=uart, in_protocol=in_protocol, out_protocol=out_protocol,
-                flags=flags_bitfield.to_bytes(length=2, byteorder='little', signed=False),
-                mode=mode_bitfield.to_bytes(length=4, byteorder='little', signed=False),
-                baud=baud, txready_enable=False
+            self.ubx_cfg_prt(
+                port=uart,
+                in_protocol=in_protocol,
+                out_protocol=out_protocol,
+                flags=flags_bitfield.to_bytes(
+                    length=2, byteorder="little", signed=False
+                ),
+                mode=mode_bitfield.to_bytes(length=4, byteorder="little", signed=False),
+                baud=baud,
+                txready_enable=False,
             )
 
         elif self.ubx_ver_allowed(32.01, 34.10):
@@ -1008,13 +1276,13 @@ class UbxCmd:
         time.sleep(0.5)
 
     def ubx_cfg_rst_hotstart(self):
-        self.ubx_cfg_rst(b'\0\0\0\0')
+        self.ubx_cfg_rst(b"\0\0\0\0")
 
     def ubx_cfg_rst_warmstart(self):
-        self.ubx_cfg_rst(b'\x01\0\0\0')
+        self.ubx_cfg_rst(b"\x01\0\0\0")
 
     def ubx_cfg_rst_coldstart(self):
-        self.ubx_cfg_rst(b'\xff\xff\0\0')
+        self.ubx_cfg_rst(b"\xff\xff\0\0")
 
     def ubx_cfg_gnss(self, data: bytes):
         self.ubx_msg_acknak(0x06, 0x3E, data)
@@ -1032,40 +1300,57 @@ class UbxCmd:
             gnss_major_enabled = [self.GNSS_ID_MAJOR.GPS]
             major_simultaneous = 1
         elif self.ubx_ver_allowed(14.00, 14.00):
-            gnss_supported = [self.GNSS_ID_MAJOR.GPS, self.GNSS_ID_AUGMENT.SBAS, self.GNSS_ID_AUGMENT.QZSS, self.GNSS_ID_MAJOR.GLONASS]
+            gnss_supported = [
+                self.GNSS_ID_MAJOR.GPS,
+                self.GNSS_ID_AUGMENT.SBAS,
+                self.GNSS_ID_AUGMENT.QZSS,
+                self.GNSS_ID_MAJOR.GLONASS,
+            ]
             gnss_major_enabled = [self.GNSS_ID_MAJOR.GPS, self.GNSS_ID_MAJOR.GLONASS]
-            major_simultaneous = 1 # 7-series only supports GPS/SBAS/QZSS **OR** GLONASS
+            major_simultaneous = (
+                1  # 7-series only supports GPS/SBAS/QZSS **OR** GLONASS
+            )
         elif self.ubx_ver_allowed(15.00, 34.10):
             # all augmentation systems supported 8-series and later
-            gnss_supported = [self.GNSS_ID_AUGMENT.SBAS, self.GNSS_ID_AUGMENT.QZSS, self.GNSS_ID_AUGMENT.IMES]
+            gnss_supported = [
+                self.GNSS_ID_AUGMENT.SBAS,
+                self.GNSS_ID_AUGMENT.QZSS,
+                self.GNSS_ID_AUGMENT.IMES,
+            ]
             data = self.ubx_msg_poll(0x0A, 0x28)
             if not (data[0] == 0x00 or data[0] == 0x01):
                 # message version 0 and 1 appear to be identical 🤷‍♂️
                 # message version 1 only appears on 9-series receivers, it reverts back to version 0 on 10-series
-                raise ValueError("ubx-mon-gnss unsupported message version {} received".format(data[0]))
+                raise ValueError(
+                    "ubx-mon-gnss unsupported message version {} received".format(
+                        data[0]
+                    )
+                )
 
             major_simultaneous = data[4]
-            if (data[1] & 1<<0) != 0:
+            if (data[1] & 1 << 0) != 0:
                 gnss_supported.append(self.GNSS_ID_MAJOR.GPS)
-            if (data[1] & 1<<1) != 0:
+            if (data[1] & 1 << 1) != 0:
                 gnss_supported.append(self.GNSS_ID_MAJOR.GLONASS)
-            if (data[1] & 1<<2) != 0:
+            if (data[1] & 1 << 2) != 0:
                 gnss_supported.append(self.GNSS_ID_MAJOR.BeiDou)
-            if (data[1] & 1<<3) != 0:
+            if (data[1] & 1 << 3) != 0:
                 gnss_supported.append(self.GNSS_ID_MAJOR.Galileo)
 
-            if (data[3] & 1<<0) != 0:
+            if (data[3] & 1 << 0) != 0:
                 gnss_major_enabled.append(self.GNSS_ID_MAJOR.GPS)
-            if (data[3] & 1<<1) != 0:
+            if (data[3] & 1 << 1) != 0:
                 gnss_major_enabled.append(self.GNSS_ID_MAJOR.GLONASS)
-            if (data[3] & 1<<2) != 0:
+            if (data[3] & 1 << 2) != 0:
                 gnss_major_enabled.append(self.GNSS_ID_MAJOR.BeiDou)
-            if (data[3] & 1<<3) != 0:
+            if (data[3] & 1 << 3) != 0:
                 gnss_major_enabled.append(self.GNSS_ID_MAJOR.Galileo)
 
         return (gnss_supported, gnss_major_enabled, major_simultaneous)
 
-    def ubx_cfg_gnss_enabled(self, gnss:list[GNSS_ID_MAJOR|GNSS_ID_AUGMENT], channels=0):
+    def ubx_cfg_gnss_enabled(
+        self, gnss: list[GNSS_ID_MAJOR | GNSS_ID_AUGMENT], channels=0
+    ):
         # receiver GNSS configuration rules:
         # 6-series and earlier - GPS/SBAS (no configuration of GNSS allowed)
         # 7-series - GPS/SBAS/QZSS+GLONASS (only GPS/SBAS/QZSS **OR** GLONASS + tracking channels limit)
@@ -1082,7 +1367,11 @@ class UbxCmd:
                 if gnid in self.GNSS_ID_MAJOR:
                     major_configured += 1
                     if major_configured > major_simultaneous:
-                        raise ValueError("Receiver only supports {} major GNSS simultaneously".format(major_simultaneous))
+                        raise ValueError(
+                            "Receiver only supports {} major GNSS simultaneously".format(
+                                major_simultaneous
+                            )
+                        )
                 else:
                     minor_configured += 1
                 gnss_configured.append(gnid)
@@ -1099,12 +1388,18 @@ class UbxCmd:
         if self.ubx_ver_allowed(14.00, 14.00):
             # 7-series can configure GPS/QZSS/SBAS **OR** GLONASS
             if self.GNSS_ID_MAJOR.GLONASS in gnss and len(gnss) > 1:
-                raise ValueError("7-series can only enable GLONASS without GPS, QZSS, or SBAS")
+                raise ValueError(
+                    "7-series can only enable GLONASS without GPS, QZSS, or SBAS"
+                )
 
         if self.ubx_ver_allowed(14.00, 23.01):
             data = bytearray(self.ubx_msg_poll(0x06, 0x3E))
             if data[0] != 0x00:
-                raise ValueError("ubx-cfg-gnss unsupported message version {} received".format(data[0]))
+                raise ValueError(
+                    "ubx-cfg-gnss unsupported message version {} received".format(
+                        data[0]
+                    )
+                )
             if channels == 0:
                 channels = data[1]
 
@@ -1112,34 +1407,53 @@ class UbxCmd:
             num_configs = data[3]
             channels_min = 0
             while config_pos < num_configs:
-                gnss_id = data[4+(8*config_pos)]
-                flags = int.from_bytes(data[8+(8*config_pos):11+(8*config_pos)], byteorder='little', signed=False)
+                gnss_id = data[4 + (8 * config_pos)]
+                flags = int.from_bytes(
+                    data[8 + (8 * config_pos) : 11 + (8 * config_pos)],
+                    byteorder="little",
+                    signed=False,
+                )
                 if self.ubx_ver_allowed(14.00, 14.00):
                     flags &= 0x00000001
                 elif self.ubx_ver_allowed(15.00, 23.01):
                     flags &= 0x00FF0001
                 if gnss_id in gnss_configured:
-                    channels_min += data[5+(8*config_pos)]
-                    flags |= 1<<0
+                    channels_min += data[5 + (8 * config_pos)]
+                    flags |= 1 << 0
                 else:
                     flags &= 0xFFFFFFFE
-                data[8+(8*config_pos):12+(8*config_pos)] = int.to_bytes(flags, length=4, byteorder='little', signed=False)
+                data[8 + (8 * config_pos) : 12 + (8 * config_pos)] = int.to_bytes(
+                    flags, length=4, byteorder="little", signed=False
+                )
                 config_pos += 1
 
             if not self.ubx_ver_allowed(23.01, 23.01):
                 # number of configured channels is read-only on protocol version 23.01 and later
                 if channels < channels_min:
-                    raise ValueError("Not enough enabled channels to support GNSS configuration, {} required".format(channels_min))
+                    raise ValueError(
+                        "Not enough enabled channels to support GNSS configuration, {} required".format(
+                            channels_min
+                        )
+                    )
                 else:
                     data[2] = channels
 
             if self.ubx_cfg_gnss(data) == False:
-                raise ValueError("Error in ubx-cfg-gnss with data:\n{}".format(data.hex()))
+                raise ValueError(
+                    "Error in ubx-cfg-gnss with data:\n{}".format(data.hex())
+                )
 
         elif self.ubx_ver_allowed(32.01, 34.10):
             raise ValueError("9-series+ configuration not implemented")
 
-    def ubx_cfg_gnss_all(self, gnss:GNSS_ID_MAJOR|GNSS_ID_AUGMENT, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
+    def ubx_cfg_gnss_all(
+        self,
+        gnss: GNSS_ID_MAJOR | GNSS_ID_AUGMENT,
+        enabled=True,
+        min_channels=None,
+        max_channels=None,
+        sig_cfg_mask=None,
+    ):
         gnss_supported, gnss_enabled, major_simultaneous = self.ubx_mon_gnss()
         if gnss not in gnss_supported:
             return
@@ -1153,7 +1467,11 @@ class UbxCmd:
             data = bytearray(12)
             cur_data = self.ubx_msg_poll(0x06, 0x3E)
             if cur_data[0] != 0x00:
-                raise ValueError("ubx-cfg-gnss unsupported message version {} received".format(data[0]))
+                raise ValueError(
+                    "ubx-cfg-gnss unsupported message version {} received".format(
+                        data[0]
+                    )
+                )
             channels_avail = cur_data[1]
 
             data[:3] = cur_data[:3]
@@ -1162,12 +1480,12 @@ class UbxCmd:
             config_pos = 0
             num_configs = cur_data[3]
             while config_pos < num_configs:
-                if cur_data[4+(8*config_pos)] == gnss:
-                    data[4:] = cur_data[4+(8*config_pos):12+(8*config_pos)]
+                if cur_data[4 + (8 * config_pos)] == gnss:
+                    data[4:] = cur_data[4 + (8 * config_pos) : 12 + (8 * config_pos)]
                     break
                 config_pos += 1
 
-            flags = int.from_bytes(data[8:12], byteorder='little', signed=False)
+            flags = int.from_bytes(data[8:12], byteorder="little", signed=False)
             enabled_cur = False
             if flags & 0x00000001 != 0:
                 enabled_cur = True
@@ -1180,29 +1498,43 @@ class UbxCmd:
                     flags &= 0x00000001
                     flags |= sig_cfg_mask << 16
             if enabled == True:
-                flags |= 1<<0
+                flags |= 1 << 0
             else:
                 flags &= 0xFFFFFFFE
-            data[8:] = int.to_bytes(flags, length=4, byteorder='little', signed=False)
+            data[8:] = int.to_bytes(flags, length=4, byteorder="little", signed=False)
 
             if not self.ubx_ver_allowed(23.01, 23.01):
                 if min_channels != None:
                     if min_channels < 4 and gnss in self.GNSS_ID_MAJOR:
-                        raise ValueError("Major GNSS must have minimum 4 channels, {} requested".format(min_channels))
+                        raise ValueError(
+                            "Major GNSS must have minimum 4 channels, {} requested".format(
+                                min_channels
+                            )
+                        )
 
                     data[5] = min_channels
 
                 if max_channels != None:
                     if max_channels < data[5]:
-                        raise ValueError("Max {} channels must be >= {} min channels".format(max_channels, data[5]))
+                        raise ValueError(
+                            "Max {} channels must be >= {} min channels".format(
+                                max_channels, data[5]
+                            )
+                        )
                     elif max_channels > channels_avail:
-                        logger.warning("{} channels requested, setting to {} available".format(max_channels, channels_avail))
+                        logger.warning(
+                            "{} channels requested, setting to {} available".format(
+                                max_channels, channels_avail
+                            )
+                        )
                         max_channels = channels_avail
 
                     data[6] = max_channels
 
             if self.ubx_cfg_gnss(data) == False:
-                raise ValueError("Error in ubx-cfg-gnss with data:\n{}".format(data.hex()))
+                raise ValueError(
+                    "Error in ubx-cfg-gnss with data:\n{}".format(data.hex())
+                )
 
             # cold-start if a GNSS system is enabled/disabled
             if enabled_cur != enabled:
@@ -1212,86 +1544,136 @@ class UbxCmd:
         elif self.ubx_ver_allowed(32.01, 34.10):
             raise ValueError("9-series+ configuration not implemented")
 
+    def ubx_cfg_gnss_gps(
+        self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None
+    ):
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_MAJOR.GPS, enabled, min_channels, max_channels, sig_cfg_mask
+        )
 
-    def ubx_cfg_gnss_gps(self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
-        self.ubx_cfg_gnss_all(self.GNSS_ID_MAJOR.GPS, enabled, min_channels, max_channels, sig_cfg_mask)
+    def ubx_cfg_gnss_glonass(
+        self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None
+    ):
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_MAJOR.GLONASS,
+            enabled,
+            min_channels,
+            max_channels,
+            sig_cfg_mask,
+        )
 
-    def ubx_cfg_gnss_glonass(self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
-        self.ubx_cfg_gnss_all(self.GNSS_ID_MAJOR.GLONASS, enabled, min_channels, max_channels, sig_cfg_mask)
+    def ubx_cfg_gnss_galileo(
+        self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None
+    ):
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_MAJOR.Galileo,
+            enabled,
+            min_channels,
+            max_channels,
+            sig_cfg_mask,
+        )
 
-    def ubx_cfg_gnss_galileo(self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
-        self.ubx_cfg_gnss_all(self.GNSS_ID_MAJOR.Galileo, enabled, min_channels, max_channels, sig_cfg_mask)
+    def ubx_cfg_gnss_beidou(
+        self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None
+    ):
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_MAJOR.BeiDou, enabled, min_channels, max_channels, sig_cfg_mask
+        )
 
-    def ubx_cfg_gnss_beidou(self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
-        self.ubx_cfg_gnss_all(self.GNSS_ID_MAJOR.BeiDou, enabled, min_channels, max_channels, sig_cfg_mask)
+    def ubx_cfg_gnss_imes(
+        self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None
+    ):
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_AUGMENT.IMES, enabled, min_channels, max_channels, sig_cfg_mask
+        )
 
-    def ubx_cfg_gnss_imes(self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
-        self.ubx_cfg_gnss_all(self.GNSS_ID_AUGMENT.IMES, enabled, min_channels, max_channels, sig_cfg_mask)
-
-    def ubx_cfg_gnss_qzss(self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None):
-        self.ubx_cfg_gnss_all(self.GNSS_ID_AUGMENT.QZSS, enabled, min_channels, max_channels, sig_cfg_mask)
+    def ubx_cfg_gnss_qzss(
+        self, enabled=True, min_channels=None, max_channels=None, sig_cfg_mask=None
+    ):
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_AUGMENT.QZSS, enabled, min_channels, max_channels, sig_cfg_mask
+        )
 
     def ubx_cfg_sbas(self, data: bytes):
         if self.ubx_msg_acknak(0x06, 0x16, data) == False:
             raise ValueError("Error in ubx-cfg-sbas with data:\n{}".format(data.hex()))
 
-    def ubx_cfg_gnss_sbas(self, enabled=True, min_channels=1, max_channels=None, sig_cfg_mask=None, test_mode=False, ranging=True, correction=True, integrity=False, prn_mask=0):
+    def ubx_cfg_gnss_sbas(
+        self,
+        enabled=True,
+        min_channels=1,
+        max_channels=None,
+        sig_cfg_mask=None,
+        test_mode=False,
+        ranging=True,
+        correction=True,
+        integrity=False,
+        prn_mask=0,
+    ):
         # SBAS configuration is in 2 locations for 7-series and later
         # SBAS GNSS receiver portion in ubx-cfg-gnss and SBAS-specific configuration in ubx-cfg-sbas
-        self.ubx_cfg_gnss_all(self.GNSS_ID_AUGMENT.SBAS, enabled, min_channels, max_channels, sig_cfg_mask)
+        self.ubx_cfg_gnss_all(
+            self.GNSS_ID_AUGMENT.SBAS, enabled, min_channels, max_channels, sig_cfg_mask
+        )
 
         if self.ubx_ver_allowed(10.00, 23.01):
             data = bytearray(8)
 
             mode = 0
             if enabled == True:
-                mode |= 1<<0
+                mode |= 1 << 0
             if test_mode == True:
-                mode |= 1<<1
+                mode |= 1 << 1
             data[0] = mode
 
             usage = 0
             if ranging == True:
-                usage |= 1<<0
+                usage |= 1 << 0
             if correction == True:
-                usage |= 1<<1
+                usage |= 1 << 1
             if integrity == True:
-                usage |= 1<<2
+                usage |= 1 << 2
             data[1] = usage
 
             if self.ubx_ver_allowed(10.00, 13.03):
                 # channels dedicated to SBAS configured in ubx-cfg-sbas in protocol < 14
                 if min_channels > 3:
-                    logger.warning("Maximum of 3 SBAS channels supported on 6-series receivers")
+                    logger.warning(
+                        "Maximum of 3 SBAS channels supported on 6-series receivers"
+                    )
                     min_channels = 3
                 data[2] = min_channels
 
             # PRN mask is 39 bits
             # the value is split across 5 bytes, in a bizarre order
             data[3] = (prn_mask & 0xFF00000000) >> 32
-            data[4:8] = int.to_bytes(prn_mask & 0x00FFFFFFFF, length=4, byteorder='little', signed=False)
+            data[4:8] = int.to_bytes(
+                prn_mask & 0x00FFFFFFFF, length=4, byteorder="little", signed=False
+            )
 
             self.ubx_cfg_sbas(bytes(data))
 
         elif self.ubx_ver_allowed(32.01, 34.10):
             raise ValueError("9-series+ configuration not implemented")
 
-    def ubx_cfg_msg(self, msgclass:int, msgid:int, ports=[], rate=1):
+    def ubx_cfg_msg(self, msgclass: int, msgid: int, ports=[], rate=1):
         if self.ubx_ver_allowed(10.00, 23.01):
             data = bytearray(8)
             data[0] = msgclass & 0xFF
             data[1] = msgid & 0xFF
             if len(ports) == 0:
                 # configure all ports with same rate
-                for i in range(0,6):
-                    data[i+2] = rate
+                for i in range(0, 6):
+                    data[i + 2] = rate
             else:
                 data[0:8] = self.ubx_msg_poll(0x06, 0x01, bytes(data[0:1]))
                 for port in ports:
                     data[int(port) + 2] = rate
 
             if self.ubx_msg_acknak(0x06, 0x01, data) == False:
-                raise ValueError("Error in ubx-cfg-msg with data:\n{}".format(data.hex()))
+                raise ValueError(
+                    "Error in ubx-cfg-msg with data:\n{}".format(data.hex())
+                )
 
         elif self.ubx_ver_allowed(32.01, 34.10):
             raise ValueError("9-series+ configuration not implemented")
