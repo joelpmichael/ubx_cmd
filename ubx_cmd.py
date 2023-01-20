@@ -8,8 +8,10 @@ import string
 import threading
 import time
 from enum import Enum, IntEnum, IntFlag, unique
+from typing import Any, List, Tuple, Union
 
 import serial
+import typing_extensions
 
 # class for communicating with u-blox GPS receivers
 # supports UBX, NMEA, and RTCM3 protocols
@@ -488,7 +490,7 @@ class UbxCmd:
     def receive_queue_start(
         self,
         # empty filters = allow all
-        protocols: INOUT_PROTOCOL | None,  # protocols to allow: UBX or NMEA
+        protocols: Union[INOUT_PROTOCOL, None],  # protocols to allow: UBX or NMEA
         ubx_filters=[
             ()
         ],  # list of UBX message class / message id / data offset / data value - matched equal, None = allow any
@@ -636,7 +638,9 @@ class UbxCmd:
         else:
             return False
 
-    def ubx_mon_ver(self):
+    def ubx_mon_ver(
+        self,
+    ) -> Any:
         extensions = []
         sw_version = ""
         hw_version = ""
@@ -706,7 +710,7 @@ class UbxCmd:
     def set_logging(self, level) -> None:
         logger.setLevel(level)
 
-    def set_stream(self, stream: serial.Serial | io.BufferedIOBase) -> None:
+    def set_stream(self, stream: Union[serial.Serial, io.BufferedIOBase]) -> None:
         if self.stream is not None:
             if stream != self.stream:
                 self.stream.close()
@@ -1348,7 +1352,7 @@ class UbxCmd:
         return (gnss_supported, gnss_major_enabled, major_simultaneous)
 
     def ubx_cfg_gnss_enabled(
-        self, gnss: list[GNSS_ID_MAJOR | GNSS_ID_AUGMENT], channels=0
+        self, gnss: list[Union[GNSS_ID_MAJOR, GNSS_ID_AUGMENT]], channels=0
     ):
         # receiver GNSS configuration rules:
         # 6-series and earlier - GPS/SBAS (no configuration of GNSS allowed)
@@ -1447,7 +1451,7 @@ class UbxCmd:
 
     def ubx_cfg_gnss_all(
         self,
-        gnss: GNSS_ID_MAJOR | GNSS_ID_AUGMENT,
+        gnss: Union[GNSS_ID_MAJOR, GNSS_ID_AUGMENT],
         enabled=True,
         min_channels=None,
         max_channels=None,
