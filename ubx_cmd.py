@@ -11,7 +11,6 @@ from enum import Enum, IntEnum, IntFlag, unique
 from typing import Any, List, Tuple, Union
 
 import serial
-import typing_extensions
 
 # class for communicating with u-blox GPS receivers
 # supports UBX, NMEA, and RTCM3 protocols
