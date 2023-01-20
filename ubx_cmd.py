@@ -5,7 +5,6 @@ logger = logging.getLogger(__name__)
 import io
 import queue
 import string
-import sys
 import threading
 import time
 from enum import Enum, IntEnum, IntFlag, unique
@@ -155,19 +154,19 @@ class UbxCmd:
         time.sleep(0.001)  # yield to make sure all threads have started
 
         while True:
-            while self.write == False or self.stream == None:
+            while self.write is False or self.stream is None:
                 time.sleep(0.2)
 
             # wait forever for new data
             tx_item = self.tx_queue.get(block=True, timeout=None)
 
-            if tx_item == None:  # canary value to break out of infinite loop
+            if tx_item is None:  # canary value to break out of infinite loop
                 self.tx_queue.task_done()
                 break
 
             self.stream.write(tx_item)
             self.tx_queue.task_done()
-            if self.read == True:
+            if self.read is True:
                 time.sleep(0.001)  # yield to read threads after TX completes
 
     def thread_rx(self) -> None:
@@ -203,7 +202,7 @@ class UbxCmd:
         rtcm3_buff_pos = 0
 
         while True:
-            while self.read == False or self.stream == None:
+            while self.read is False or self.stream is None:
                 time.sleep(0.2)
 
             try:
@@ -312,7 +311,7 @@ class UbxCmd:
             rx_data = self.rx_queue.get(block=True, timeout=None)
 
             # canary value to break out of infinite loop
-            if rx_data == None:
+            if rx_data is None:
                 self.rx_queue.task_done()
                 break
 
@@ -432,13 +431,13 @@ class UbxCmd:
                         for sentence, strmatch in self.parse_dest_threads[dest][
                             "nmea_filter"
                         ]:
-                            if sentence != None:
+                            if sentence is not None:
                                 if (
                                     sentence.upper()
                                     != str(rx_data[3:5], encoding="ascii").upper()
                                 ):
                                     continue
-                            if strmatch != None:
+                            if strmatch is not None:
                                 if (
                                     strmatch.upper()
                                     not in str(rx_data[6:-6], encoding="ascii").upper()
@@ -446,7 +445,7 @@ class UbxCmd:
                                     continue
                             filter_match = True
                             break
-                        if filter_match == False:
+                        if filter_match is False:
                             continue
 
                 elif rx_protocol == self.INOUT_PROTOCOL.UBX:
@@ -456,18 +455,18 @@ class UbxCmd:
                         for msgclass, msgid, offset, data in self.parse_dest_threads[
                             dest
                         ]["ubx_filter"]:
-                            if msgclass != None:
+                            if msgclass is not None:
                                 if msgclass != rx_data[2]:
                                     continue
-                            if msgid != None:
+                            if msgid is not None:
                                 if msgid != rx_data[3]:
                                     continue
-                            if offset != None and data != None:
+                            if offset is not None and data is not None:
                                 if data != rx_data[6 + offset]:
                                     continue
                             filter_match = True
                             break
-                        if filter_match == False:
+                        if filter_match is False:
                             continue
 
                 elif rx_protocol == self.INOUT_PROTOCOL.RTCM:
@@ -502,7 +501,7 @@ class UbxCmd:
         self.parse_dest_lock.acquire(blocking=True)
         self.parse_dest_threads[q] = {}
 
-        if protocols == None:
+        if protocols is None:
             protocols = self.INOUT_PROTOCOL.ALL
         self.parse_dest_threads[q]["protocols"] = protocols
 
@@ -708,7 +707,7 @@ class UbxCmd:
         logger.setLevel(level)
 
     def set_stream(self, stream: serial.Serial | io.BufferedIOBase) -> None:
-        if self.stream != None:
+        if self.stream is not None:
             if stream != self.stream:
                 self.stream.close()
 
@@ -728,7 +727,7 @@ class UbxCmd:
 
         else:
             # set timeout for blocking io
-            if self.read == True and self.write == True:
+            if self.read is True and self.write is True:
                 raise ValueError(
                     "Unable to both read and write on a file, use a serial.Serial object instead"
                 )
@@ -737,7 +736,7 @@ class UbxCmd:
 
         # if read/write we are connected to the receiver using a serial stream
         # probe the receiver to determine protocol version
-        if self.read == True and self.write == True:
+        if self.read is True and self.write is True:
             self.ubx_find_proto_ver()
 
     def set_read(self, read: bool) -> None:
@@ -748,7 +747,7 @@ class UbxCmd:
         if isinstance(self.stream, io.RawIOBase) or isinstance(
             self.stream, io.BufferedIOBase
         ):
-            if self.stream.readable() and self.read == True:
+            if self.stream.readable() and self.read is True:
                 self.write = False
             else:
                 self.read = False
@@ -761,7 +760,7 @@ class UbxCmd:
         if isinstance(self.stream, io.RawIOBase) or isinstance(
             self.stream, io.BufferedIOBase
         ):
-            if self.stream.writable() and self.write == True:
+            if self.stream.writable() and self.write is True:
                 self.read = False
             else:
                 self.write = False
@@ -797,7 +796,7 @@ class UbxCmd:
                 baud_ok = True
                 break
             baud *= 2
-        if baud_ok == False:
+        if baud_ok is False:
             raise ValueError(
                 "Serial baud rate must be a doubling of 4800, up to 921600"
             )
@@ -937,7 +936,7 @@ class UbxCmd:
         # 8-series P <20 - UBX|NMEA|RTCM
         # 8-series P>=20 - UBX|NMEA|RTCM|RTCM3
         # 9-series and later - UBX|NMEA|RTCM3
-        if in_protocol != None:
+        if in_protocol is not None:
             if self.ubx_ver_allowed(10.00, 13.03):
                 # 6-series and earlier
                 in_protocol = in_protocol & (
@@ -975,7 +974,7 @@ class UbxCmd:
         # 8-series P <20 - UBX|NMEA
         # 8-series P>=20 - UBX|NMEA|RTCM3
         # 9-series and later - UBX|NMEA|RTCM3
-        if out_protocol != None:
+        if out_protocol is not None:
             if self.ubx_ver_allowed(10.00, 19.20):
                 # 7-series and earlier, some 8-series
                 out_protocol = out_protocol & (
@@ -1005,13 +1004,13 @@ class UbxCmd:
         # txReady only supported in firmware 7.01 (protocol 13.01) and later
         if self.ubx_ver_allowed(13.01, 23.01):
             # bit 0 = enable
-            if txready_enable == True:
+            if txready_enable is True:
                 tx_ready |= 1 << 0
             else:
                 tx_ready &= 0xFFFE
 
             # bit 1 = polarity: 0==high-enable, 1==low-enable
-            if txready_polarity_low == True:
+            if txready_polarity_low is True:
                 tx_ready |= 1 << 1
             else:
                 tx_ready &= 0xFFFD
@@ -1062,7 +1061,7 @@ class UbxCmd:
             self.ubx_msg_send(0x06, 0x00, bytes(data))
             time.sleep(1)
         else:
-            if self.ubx_msg_acknak(0x06, 0x00, data) == False:
+            if self.ubx_msg_acknak(0x06, 0x00, data) is False:
                 raise ValueError(
                     "Error in ubx-cfg-prt with data:\n{}".format(data.hex())
                 )
@@ -1192,9 +1191,9 @@ class UbxCmd:
             if data_bits == 8:
                 mode_bitfield |= 1 << 6  # 8-bit
             mode_bitfield &= 0xFFFFF1FF  # clear parity bits setting
-            if parity_odd == None:
+            if parity_odd is None:
                 mode_bitfield |= 1 << 11
-            elif parity_odd == True:
+            elif parity_odd is True:
                 mode_bitfield |= 1 << 9
             # else mode_bitfield set to 0, which is already done
             mode_bitfield &= 0xFFFFCFFF  # clear stop bits setting
@@ -1211,7 +1210,7 @@ class UbxCmd:
                 )
                 flags_bitfield &= 0x0002  # reserved bits mask
                 flags_bitfield &= 0xFFFD  # clear extended TX timeout bit
-                if extended_tx_timeout == True:
+                if extended_tx_timeout is True:
                     flags_bitfield |= 1 << 1
 
             else:
@@ -1241,11 +1240,11 @@ class UbxCmd:
 
             elif data_bits == 7:
                 self.stream.bytesize = serial.SEVENBITS
-                if parity_odd == None:
+                if parity_odd is None:
                     self.stream.parity = serial.PARITY_NONE
-                elif parity_odd == True:
+                elif parity_odd is True:
                     self.stream.parity = serial.PARITY_ODD
-                elif parity_odd == False:
+                elif parity_odd is False:
                     self.stream.parity = serial.PARITY_EVEN
 
             # u-blox GPS receivers support 0.5 stop bits, but serial.Serial doesn't...
@@ -1438,7 +1437,7 @@ class UbxCmd:
                 else:
                     data[2] = channels
 
-            if self.ubx_cfg_gnss(data) == False:
+            if self.ubx_cfg_gnss(data) is False:
                 raise ValueError(
                     "Error in ubx-cfg-gnss with data:\n{}".format(data.hex())
                 )
@@ -1494,17 +1493,17 @@ class UbxCmd:
                 flags &= 0x00000001
             elif self.ubx_ver_allowed(15.00, 23.01):
                 flags &= 0x00FF0001
-                if sig_cfg_mask != None:
+                if sig_cfg_mask is not None:
                     flags &= 0x00000001
                     flags |= sig_cfg_mask << 16
-            if enabled == True:
+            if enabled is True:
                 flags |= 1 << 0
             else:
                 flags &= 0xFFFFFFFE
             data[8:] = int.to_bytes(flags, length=4, byteorder="little", signed=False)
 
             if not self.ubx_ver_allowed(23.01, 23.01):
-                if min_channels != None:
+                if min_channels is not None:
                     if min_channels < 4 and gnss in self.GNSS_ID_MAJOR:
                         raise ValueError(
                             "Major GNSS must have minimum 4 channels, {} requested".format(
@@ -1514,7 +1513,7 @@ class UbxCmd:
 
                     data[5] = min_channels
 
-                if max_channels != None:
+                if max_channels is not None:
                     if max_channels < data[5]:
                         raise ValueError(
                             "Max {} channels must be >= {} min channels".format(
@@ -1531,7 +1530,7 @@ class UbxCmd:
 
                     data[6] = max_channels
 
-            if self.ubx_cfg_gnss(data) == False:
+            if self.ubx_cfg_gnss(data) is False:
                 raise ValueError(
                     "Error in ubx-cfg-gnss with data:\n{}".format(data.hex())
                 )
@@ -1595,7 +1594,7 @@ class UbxCmd:
         )
 
     def ubx_cfg_sbas(self, data: bytes):
-        if self.ubx_msg_acknak(0x06, 0x16, data) == False:
+        if self.ubx_msg_acknak(0x06, 0x16, data) is False:
             raise ValueError("Error in ubx-cfg-sbas with data:\n{}".format(data.hex()))
 
     def ubx_cfg_gnss_sbas(
@@ -1620,18 +1619,18 @@ class UbxCmd:
             data = bytearray(8)
 
             mode = 0
-            if enabled == True:
+            if enabled is True:
                 mode |= 1 << 0
-            if test_mode == True:
+            if test_mode is True:
                 mode |= 1 << 1
             data[0] = mode
 
             usage = 0
-            if ranging == True:
+            if ranging is True:
                 usage |= 1 << 0
-            if correction == True:
+            if correction is True:
                 usage |= 1 << 1
-            if integrity == True:
+            if integrity is True:
                 usage |= 1 << 2
             data[1] = usage
 
@@ -1670,7 +1669,7 @@ class UbxCmd:
                 for port in ports:
                     data[int(port) + 2] = rate
 
-            if self.ubx_msg_acknak(0x06, 0x01, data) == False:
+            if self.ubx_msg_acknak(0x06, 0x01, data) is False:
                 raise ValueError(
                     "Error in ubx-cfg-msg with data:\n{}".format(data.hex())
                 )
