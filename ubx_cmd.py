@@ -207,6 +207,13 @@ class UbxCmd:
                 time.sleep(0.2)
 
             try:
+                self.rx_signal_queue.get_nowait()
+            except queue.Empty:
+                pass
+            else:
+                break
+
+            try:
                 rx_buff = self.stream.read(RX_BUFF_SIZE)
             except BlockingIOError:
                 rx_count = 0
@@ -329,7 +336,6 @@ class UbxCmd:
                 if (
                     rx_data[-5] == 0x2A and rx_data[-2] == 0x0D and rx_data[-1] == 0x0A
                 ):  # ASCII for *, \r, \n
-
                     rx_checksum_str = str(rx_data[-4:-2], encoding="ascii").upper()
                     # check to make sure only hex digits in the checksum
                     if not all(c in string.hexdigits for c in rx_checksum_str):
@@ -496,7 +502,6 @@ class UbxCmd:
         nmea_filters=[()],  # list of NMEA sentence type / string match
         rtcm3_filters=[()],  # list of RTCM3 message type / string match
     ) -> queue.Queue:
-
         q = queue.Queue(0)  # unlimited queue length, so that thread_parse() won't block
 
         self.parse_dest_lock.acquire(blocking=True)
@@ -826,6 +831,9 @@ class UbxCmd:
         self.rx_queue = queue.Queue(
             0
         )  # unbounded size, as rx_thread needs to be as non-blocking as possible
+        self.rx_signal_queue = queue.Queue(
+            1
+        )  # Any entries in this queue signals Serial RX thread to exit
         self.rx_thread = threading.Thread(target=self.thread_rx, daemon=True)
         self.rx_thread.start()
         self.parse_thread = threading.Thread(target=self.thread_parse, daemon=True)
@@ -836,6 +844,17 @@ class UbxCmd:
         self.set_read(read)
         self.set_write(write)
         self.set_stream(stream)
+
+    def __del__(self) -> None:
+        while self.tx_thread.is_alive():
+            self.tx_queue.put(item=None, block=True, timeout=None)
+            self.tx_thread.join(timeout=1.0)
+        while self.rx_thread.is_alive():
+            self.rx_signal_queue.put(item=None, block=True, timeout=None)
+            self.rx_thread.join(timeout=1.0)
+
+    def close(self) -> None:
+        self.__del__()
 
     def ubx_cfg_cfg(self, data: bytes) -> None:
         # NOTE - UBX receiver implementaion has changed after protocol 23.01 (i.e. 9-series and later)

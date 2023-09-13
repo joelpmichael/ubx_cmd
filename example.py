@@ -3,7 +3,20 @@ import serial
 
 from ubx_cmd import UbxCmd
 
-s = serial.Serial("COM6")
+# s = serial.Serial("COM6") # Windows
+s = serial.Serial(
+    "/dev/ttyAMA0",
+    exclusive=True,
+    baudrate=9600,
+    bytesize=8,
+    parity=serial.PARITY_NONE,
+    stopbits=1.0,
+    timeout=1,
+    xonxoff=False,
+    rtscts=False,
+    dsrdtr=False,
+)  # Linux
+
 ubx = UbxCmd(s, read=True, write=True)
 print(ubx)
 ubx.ubx_cfg_cfg_reset_all()
@@ -51,3 +64,10 @@ ubx.ubx_cfg_msg(0xF0, 0x03, rate=0)
 ubx.ubx_cfg_msg(0xF0, 0x08, rate=1)
 
 ubx.ubx_cfg_cfg_save_all()
+
+# stop ubx processing threads
+ubx.close()
+s.cancel_write()
+s.cancel_read()
+
+s.close()
